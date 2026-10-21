@@ -1,6 +1,28 @@
 import nodemailer from "nodemailer";
 
 let transporter = null;
+let isTestingMock = false;
+
+export const setMockTransporter = (mock) => {
+    isTestingMock = Boolean(mock);
+    transporter = mock;
+};
+
+export const resetTransporter = () => {
+    isTestingMock = false;
+    transporter = null;
+};
+
+export const getSenderAddress = () => {
+    return `"Campus Placement Cell" <${process.env.EMAIL_USER || process.env.SMTP_USER || "no-reply@placement.edu"}>`;
+};
+
+export const isSmtpConfigured = () => {
+    if (isTestingMock && transporter) return true;
+    const emailUser = process.env.EMAIL_USER || process.env.SMTP_USER;
+    const emailPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
+    return Boolean(emailUser && emailPass);
+};
 
 const getTransporter = () => {
     if (transporter) return transporter;
