@@ -1,5 +1,19 @@
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 
-dotenv.config({
-    path: "./.env",
-});
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+export const envPath = path.resolve(__dirname, ".env");
+
+export const reloadEnv = () => {
+    dotenv.config({
+        path: envPath,
+        override: true,
+    });
+};
+
+reloadEnv();
+
+if (!process.env.ADMIN_SECRET_KEY) {
+    process.env.ADMIN_SECRET_KEY = "TPO_ADMIN_2026";
+}
