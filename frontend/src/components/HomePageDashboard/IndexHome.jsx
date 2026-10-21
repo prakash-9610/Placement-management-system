@@ -1,10 +1,9 @@
 import Navbar from "./Navbar.jsx";
 import Home from "./Home.jsx";
+import PlatformFeatures from "./PlatformFeatures.jsx";
 import ProcessWorkflow from "./ProcessWorkflow.jsx";
-import PreviousDrives from "./PreviousDrives.jsx";
-import TopRecruitingCompanies from "./TopRecuritingCompanies.jsx";
-import Contact from "./Contact.jsx";
 import Footer from "./Footer.jsx";
+import CollegeShowcase from "./CollegeShowcase.jsx";
 
 function IndexHome() {
   return (
@@ -12,10 +11,9 @@ function IndexHome() {
       <Navbar />
       <main>
         <Home />
+        <CollegeShowcase />
+        <PlatformFeatures />
         <ProcessWorkflow />
-        <PreviousDrives />
-        <TopRecruitingCompanies />
-        <Contact />
       </main>
       <Footer />
     </div>

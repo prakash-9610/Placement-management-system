@@ -17,3 +17,39 @@ export const markAllNotificationsAsRead = async () => {
   const response = await api.patch("/notifications/mark-all-read");
   return response.data;
 };
+
+// Preview announcement audience count and recipients
+export const getAnnouncementPreview = async (params) => {
+  const response = await api.get("/notifications/announcement-preview", { params });
+  return response.data;
+};
+
+// Broadcast announcement to student cohorts (Admin)
+export const broadcastAnnouncement = async (announcementData) => {
+  const response = await api.post("/notifications/broadcast", announcementData);
+  return response.data;
+};
+
+// Get scheduled reminder jobs (Admin)
+export const getScheduledReminders = async () => {
+  const response = await api.get("/notifications/scheduled-reminders");
+  return response.data;
+};
+
+// Manually trigger reminder worker execution (Admin)
+export const triggerReminderWorker = async () => {
+  const response = await api.post("/notifications/trigger-reminders");
+  return response.data;
+};
+
+// Safe SMTP diagnostics status (Admin)
+export const getSmtpStatus = async () => {
+  const response = await api.get("/notifications/smtp-status");
+  return response.data;
+};
+
+// Send single controlled test email (Admin)
+export const sendSmtpTestEmail = async (testEmail) => {
+  const response = await api.post("/notifications/smtp-test-email", { testEmail });
+  return response.data;
+};

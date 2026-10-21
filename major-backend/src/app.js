@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
+import { ApiError } from "./utils/ApiError.js";
 
 const app = express();
 
@@ -25,41 +27,16 @@ const isOriginAllowed = (origin) => {
 
     const normalizedOrigin = origin.replace(/\/$/, "");
 
-    // Allow all if CORS_ORIGIN is '*'
-    if (process.env.CORS_ORIGIN === "*" || configuredOrigins.includes("*")) {
+    if (configuredOrigins.includes(normalizedOrigin)) {
         return true;
     }
 
-    // Explicit origins from env or default local dev
     if (
-        defaultAllowedOrigins.includes(normalizedOrigin) ||
-        configuredOrigins.includes(normalizedOrigin)
+        process.env.NODE_ENV !== "production" &&
+        (defaultAllowedOrigins.includes(normalizedOrigin) ||
+            /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin))
     ) {
         return true;
-    }
-
-    // Allow any localhost / 127.0.0.1 port for development
-    if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(normalizedOrigin)) {
-        return true;
-    }
-
-    // Allow all Vercel deployments (preview domains like *-msgcyqj4h.vercel.app and production domains)
-    try {
-        const parsed = new URL(normalizedOrigin);
-        if (
-            parsed.protocol === "https:" &&
-            (parsed.hostname === "vercel.app" || parsed.hostname.endsWith(".vercel.app"))
-        ) {
-            return true;
-        }
-        if (
-            parsed.protocol === "https:" &&
-            (parsed.hostname === "onrender.com" || parsed.hostname.endsWith(".onrender.com"))
-        ) {
-            return true;
-        }
-    } catch {
-        // invalid URL format
     }
 
     return false;
@@ -87,27 +64,39 @@ const corsOptions = {
     optionsSuccessStatus: 200
 };
 
+import { securityHeaders, generalApiLimiter } from "./middlewares/security.middleware.js";
+
 app.use(cors(corsOptions));
-
-app.get("/", (req, res) => {
-    res.send("backend is running");
-});
-
+app.use(securityHeaders);
 app.use(express.json({ limit: "16kb" }));
-
 app.use(
     express.urlencoded({
         extended: true,
         limit: "16kb"
     })
 );
-
 app.use(express.static("public"));
 app.use(cookieParser());
-
-import { securityHeaders, generalApiLimiter } from "./middlewares/security.middleware.js";
-app.use(securityHeaders);
 app.use("/api", generalApiLimiter);
+
+app.get("/", (req, res) => {
+    const databaseReady = mongoose.connection.readyState === 1;
+    return res
+        .status(databaseReady ? 200 : 503)
+        .send(databaseReady ? "backend is running" : "backend database unavailable");
+});
+
+app.get("/health", (req, res) => {
+    const databaseReady = mongoose.connection.readyState === 1;
+    const body = {
+        status: databaseReady ? "ok" : "unavailable",
+        database: databaseReady ? "connected" : "disconnected"
+    };
+    if (databaseReady) {
+        body.databaseName = mongoose.connection.name;
+    }
+    return res.status(databaseReady ? 200 : 503).json(body);
+});
 
 import userRouter from "./routes/user.routes.js";
 import studentRouter from "./routes/studentProfile.routes.js";
@@ -117,6 +106,9 @@ import placementDriveRouter from "./routes/placementDrive.routes.js";
 import applicationRouter from "./routes/application.routes.js";
 import dashboardRouter from "./routes/dashboard.routes.js";
 import notificationRouter from "./routes/notification.routes.js";
+import sessionRouter from "./routes/placementSession.routes.js";
+import departmentRouter from "./routes/department.routes.js";
+import excelRouter from "./routes/excel.routes.js";
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/studentprofile", studentRouter);
@@ -126,19 +118,39 @@ app.use("/api/v1/placementdrive", placementDriveRouter);
 app.use("/api/v1/application", applicationRouter);
 app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/notifications", notificationRouter);
+app.use("/api/v1/sessions", sessionRouter);
+app.use("/api/v1/departments", departmentRouter);
+app.use("/api/v1/excel", excelRouter);
+
+app.use((req, res, next) => {
+    next(new ApiError(404, `Route not found: ${req.method} ${req.path}`));
+});
 
 // Global Error Handler
 app.use((err, req, res, next) => {
-    console.error(err);
+    if (res.headersSent) {
+        return next(err);
+    }
 
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Internal Server Error";
+    const statusCode =
+        Number.isInteger(err.statusCode) && err.statusCode >= 400
+            ? err.statusCode
+            : 500;
+    const isServerError = statusCode >= 500;
+    if (isServerError) {
+        console.error("Unhandled API error", {
+            method: req.method,
+            path: req.path,
+            statusCode,
+            errorName: err.name
+        });
+    }
 
     return res.status(statusCode).json({
         statusCode,
         success: false,
-        message,
-        errors: err.errors || []
+        message: isServerError ? "Internal Server Error" : err.message,
+        errors: isServerError || !Array.isArray(err.errors) ? [] : err.errors
     });
 });
 

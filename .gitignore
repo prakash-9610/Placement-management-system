@@ -71,8 +71,8 @@ web_modules/
 
 # dotenv environment variables file
 .env
-.env.test
-.env.production
+.env.*
+!.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -118,3 +118,6 @@ dist
 .pnp.*
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
+
+campusflow_ug_students_*.csv
+*.csv

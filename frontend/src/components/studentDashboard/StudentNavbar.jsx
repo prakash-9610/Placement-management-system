@@ -22,12 +22,21 @@ export default function StudentNavbar({
   user,
   studentProfile,
   onOpenProfile,
+  onSelectTab,
+  unreadCount: externalUnreadCount,
+  onRefreshNotifications,
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(externalUnreadCount ?? 0);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const notificationRef = useRef(null);
+
+  useEffect(() => {
+    if (typeof externalUnreadCount === "number") {
+      setUnreadCount(externalUnreadCount);
+    }
+  }, [externalUnreadCount]);
 
   const displayName = user?.fullName || studentProfile?.user?.fullName || "Student User";
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -47,12 +56,13 @@ export default function StudentNavbar({
     }
   }, []);
 
-  // Initial fetch and auto-polling every 25 seconds
+  // Initial fetch and auto-polling (only when not managed by parent StudentDashboard)
   useEffect(() => {
     fetchNotifications();
+    if (onRefreshNotifications) return;
     const interval = setInterval(fetchNotifications, 25000);
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [fetchNotifications, onRefreshNotifications]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -73,6 +83,7 @@ export default function StudentNavbar({
       await markAllNotificationsAsRead();
       setUnreadCount(0);
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+      onRefreshNotifications?.();
     } catch (err) {
       console.error("Failed to mark all as read:", err);
     }
@@ -86,8 +97,36 @@ export default function StudentNavbar({
       setNotifications((prev) =>
         prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
       );
+      onRefreshNotifications?.();
     } catch (err) {
       console.error("Failed to mark notification read:", err);
+    }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    if (!notification.isRead) {
+      await handleMarkOneRead(notification._id, false);
+    }
+    setShowNotifications(false);
+    const titleLower = (notification.title || "").toLowerCase();
+    const messageLower = (notification.message || "").toLowerCase();
+    if (
+      notification.type === "urgent" ||
+      titleLower.includes("deadline") ||
+      titleLower.includes("drive") ||
+      messageLower.includes("deadline") ||
+      messageLower.includes("drive")
+    ) {
+      onSelectTab?.("drives");
+    } else if (
+      notification.interviewDate ||
+      notification.status ||
+      titleLower.includes("application") ||
+      messageLower.includes("status")
+    ) {
+      onSelectTab?.("applications");
+    } else {
+      onSelectTab?.("notifications");
     }
   };
 
@@ -119,6 +158,7 @@ export default function StudentNavbar({
     overview: "Dashboard Overview",
     drives: "Placement Drives",
     applications: "My Applications",
+    notifications: "Message & Notification Center",
     profile: "Academic Profile",
   };
 
@@ -145,7 +185,7 @@ export default function StudentNavbar({
 
           <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 border border-blue-100 ml-2">
             <Sparkles className="h-3 w-3 text-blue-500" />
-            2025-26 Live Season
+            Placement workspace
           </span>
         </div>
       </div>
@@ -155,7 +195,11 @@ export default function StudentNavbar({
         {/* Notification Bell Dropdown */}
         <div className="relative" ref={notificationRef}>
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => {
+              const nextState = !showNotifications;
+              setShowNotifications(nextState);
+              if (nextState) fetchNotifications();
+            }}
             className="relative flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-blue-600 transition active:scale-95"
             aria-label="Notifications"
           >
@@ -208,7 +252,7 @@ export default function StudentNavbar({
                   notifications.map((n) => (
                     <div
                       key={n._id}
-                      onClick={() => handleMarkOneRead(n._id, n.isRead)}
+                      onClick={() => handleNotificationClick(n)}
                       className={`p-3 rounded-xl transition cursor-pointer my-1 ${
                         !n.isRead
                           ? "bg-blue-50/60 border border-blue-100 shadow-xs"
@@ -270,13 +314,22 @@ export default function StudentNavbar({
                 )}
               </div>
 
-              {notifications.length > 0 && (
-                <div className="mt-3 pt-2 border-t border-slate-100 text-center">
-                  <p className="text-[10px] text-slate-400">
-                    Live synced with Placement Admin Portal
-                  </p>
-                </div>
-              )}
+              <div className="mt-3 pt-2 border-t border-slate-100 flex flex-col gap-1.5 text-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifications(false);
+                    onSelectTab?.("notifications");
+                  }}
+                  className="w-full text-center text-xs font-semibold text-blue-600 hover:text-blue-700 py-1 hover:underline cursor-pointer flex items-center justify-center gap-1"
+                >
+                  <MessageSquare className="h-3.5 w-3.5" />
+                  View All Messages & Notifications Center
+                </button>
+                <p className="text-[10px] text-slate-400">
+                  Live synced with Placement Admin Portal
+                </p>
+              </div>
             </div>
           )}
         </div>

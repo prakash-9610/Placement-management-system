@@ -7,13 +7,12 @@ export const getAdminDashboardStats = async () => {
 };
 
 // 2. Company Management
-export const getAllCompanies = async () => {
-  const response = await api.get("/company/all-companies");
+export const getAllCompanies = async (params = {}) => {
+  const response = await api.get("/company/all-companies", { params });
   return response.data;
 };
 
 export const createCompany = async (companyData) => {
-  // If companyData is FormData (for logo file upload) or JSON
   const isFormData = companyData instanceof FormData;
   const response = await api.post("/company/create-company", companyData, {
     headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
@@ -37,18 +36,24 @@ export const reactivateCompany = async (companyId) => {
 };
 
 // 3. Placement Drive Management
-export const getAllPlacementDrives = async () => {
-  const response = await api.get("/placementdrive/all-drives");
+export const getAllPlacementDrives = async (params = {}) => {
+  const response = await api.get("/placementdrive/all-drives", { params });
   return response.data;
 };
 
 export const createPlacementDrive = async (driveData) => {
-  const response = await api.post("/placementdrive/create-placement-drive", driveData);
+  const isFormData = driveData instanceof FormData;
+  const response = await api.post("/placementdrive/create-placement-drive", driveData, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
   return response.data;
 };
 
 export const updatePlacementDrive = async (driveId, driveData) => {
-  const response = await api.patch(`/placementdrive/${driveId}`, driveData);
+  const isFormData = driveData instanceof FormData;
+  const response = await api.patch(`/placementdrive/${driveId}`, driveData, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
   return response.data;
 };
 
@@ -62,14 +67,19 @@ export const reactivatePlacementDrive = async (driveId) => {
   return response.data;
 };
 
+export const deletePlacementDrive = async (driveId) => {
+  const response = await api.delete(`/placementdrive/${driveId}`);
+  return response.data;
+};
+
 export const getEligibleStudentsForDrive = async (driveId) => {
   const response = await api.get(`/placementdrive/${driveId}/eligible-students`);
   return response.data;
 };
 
 // 4. Application Management
-export const getApplicationsByDrive = async (placementDriveId) => {
-  const response = await api.get(`/application/drive/${placementDriveId}`);
+export const getApplicationsByDrive = async (placementDriveId, params = {}) => {
+  const response = await api.get(`/application/drive/${placementDriveId}`, { params });
   return response.data;
 };
 
@@ -92,13 +102,79 @@ export const getApplicationById = async (applicationId) => {
   return response.data;
 };
 
-export const getAllApplications = async () => {
-  const response = await api.get("/application/all-applications");
+export const getAllApplications = async (params = {}) => {
+  const response = await api.get("/application/all-applications", { params });
   return response.data;
 };
 
 // 5. Student Cohort Management
-export const getAllStudentProfiles = async () => {
-  const response = await api.get("/studentprofile/all-students");
+export const getAllStudentProfiles = async (params = {}) => {
+  const response = await api.get("/studentprofile/all-students", { params });
+  return response.data;
+};
+
+export const getStudentProfileById = async (studentId) => {
+  const response = await api.get(`/studentprofile/${studentId}`);
+  return response.data;
+};
+
+// 6. Drive Eligibility Preview & Authorized Overrides (Phase 4 & 5)
+export const getDriveEligibilityPreview = async (driveId) => {
+  const response = await api.get(`/placementdrive/${driveId}/eligibility-preview`);
+  return response.data;
+};
+
+export const adminOverrideApplication = async (applicationId, overrideData) => {
+  const response = await api.post(`/application/${applicationId}/admin-override`, overrideData);
+  return response.data;
+};
+
+// 7. Automated Placement Drive Lifecycle Management (Phase 2)
+export const getAutomatedDriveWorkspace = async (driveId) => {
+  const response = await api.get(`/placementdrive/${driveId}/automated-workspace`);
+  return response.data;
+};
+
+export const configureSelectionRounds = async (driveId, rounds) => {
+  const response = await api.put(`/placementdrive/${driveId}/automated-rounds`, { rounds });
+  return response.data;
+};
+
+export const exportCompanyRoster = async (driveId, roundNumber = 1, format = "xlsx") => {
+  const response = await api.get(`/placementdrive/${driveId}/export-company-roster`, {
+    params: { roundNumber, format },
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const previewCompanyResults = async (driveId, formData) => {
+  const response = await api.post(`/placementdrive/${driveId}/preview-results`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data;
+};
+
+export const commitCompanyResults = async (driveId, commitData) => {
+  const response = await api.post(`/placementdrive/${driveId}/commit-results`, commitData);
+  return response.data;
+};
+
+// Student Profile Locking & Modification Requests
+export const getModificationRequests = async () => {
+  const response = await api.get("/studentprofile/modification-requests");
+  return response.data;
+};
+
+export const reviewModificationRequest = async (requestId, { action, reviewRemarks }) => {
+  const response = await api.post(`/studentprofile/modification-requests/${requestId}/review`, {
+    action,
+    reviewRemarks,
+  });
+  return response.data;
+};
+
+export const unlockStudentProfile = async (studentId) => {
+  const response = await api.post(`/studentprofile/${studentId}/unlock-profile`);
   return response.data;
 };
