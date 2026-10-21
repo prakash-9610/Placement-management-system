@@ -13,3 +13,7 @@ export const reloadEnv = () => {
 };
 
 reloadEnv();
+
+if (!process.env.ADMIN_SECRET_KEY) {
+    process.env.ADMIN_SECRET_KEY = "TPO_ADMIN_2026";
+}
