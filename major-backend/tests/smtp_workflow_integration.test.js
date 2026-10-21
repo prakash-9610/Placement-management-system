@@ -34,23 +34,63 @@ async function setup() {
     const port = server.address().port;
     API_BASE = `http://localhost:${port}/api/v1`;
 
-    // Admin login
-    const adminRes = await fetch(`${API_BASE}/admin/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "admin@campusflow.edu", password: "Admin@12345" })
-    });
-    const adminData = await adminRes.json();
-    adminToken = adminData.data?.accessToken;
+    // Admin token
+    let adminUser = await User.findOne({ email: "admin@campusflow.edu" });
+    if (!adminUser) {
+        adminUser = await User.findOne({ role: "admin" });
+    }
+    if (!adminUser) {
+        adminUser = await User.create({
+            fullName: "Campus Administrator",
+            email: "admin@campusflow.edu",
+            password: "Admin@12345",
+            role: "admin",
+            phone: "9876543210"
+        });
+    }
+    adminToken = adminUser.generateAccessToken();
 
-    // Student login
-    const studentRes = await fetch(`${API_BASE}/users/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: "student@campusflow.edu", password: "Student@12345" })
-    });
-    const studentData = await studentRes.json();
-    studentToken = studentData.data?.accessToken;
+    // Student token
+    let studentUser = await User.findOne({ email: "student@campusflow.edu" });
+    if (!studentUser) {
+        studentUser = await User.findOne({ role: "student" });
+    }
+    if (!studentUser) {
+        studentUser = await User.create({
+            fullName: "Campus Student",
+            email: "student@campusflow.edu",
+            password: "Student@12345",
+            role: "student",
+            phone: "9876543211"
+        });
+    }
+    studentToken = studentUser.generateAccessToken();
+
+    let studentProfile = await StudentProfile.findOne({ user: studentUser._id });
+    if (!studentProfile) {
+        let session = await PlacementSession.findOne();
+        if (!session) {
+            session = await PlacementSession.create({
+                sessionYear: 2027,
+                name: "Placement Session 2026-2027",
+                academicYear: "2026-2027",
+                course: "B.E.",
+                isCurrent: true,
+                status: "ACTIVE"
+            });
+        }
+        await StudentProfile.create({
+            user: studentUser._id,
+            usn: "1JS23CS001",
+            graduationYear: 2027,
+            placementSession: session._id,
+            branch: "Computer Science & Engineering (CSE)",
+            programCode: "CSE",
+            cgpa: 8.5,
+            verificationStatus: "VERIFIED"
+        });
+    }
+
     return true;
 }
 
@@ -153,11 +193,45 @@ test("10 & 11. Reminder email failure, safe retry behavior, and NO duplicate in-
     }
 
     // Find student and company
-    const studentUser = await User.findOne({ email: "student@campusflow.edu" });
+    let studentUser = await User.findOne({ email: "student@campusflow.edu" });
+    if (!studentUser) {
+        studentUser = await User.findOne({ role: "student" });
+    }
     assert.ok(studentUser, "Student user must exist");
-    const profile = await StudentProfile.findOne({ user: studentUser._id });
+    let profile = await StudentProfile.findOne({ user: studentUser._id });
+    if (!profile) {
+        let session = await PlacementSession.findOne();
+        if (!session) {
+            session = await PlacementSession.create({
+                sessionYear: 2027,
+                name: "Placement Session 2026-2027",
+                academicYear: "2026-2027",
+                course: "B.E.",
+                isCurrent: true,
+                status: "ACTIVE"
+            });
+        }
+        profile = await StudentProfile.create({
+            user: studentUser._id,
+            usn: "1JS23CS001",
+            graduationYear: 2027,
+            placementSession: session._id,
+            branch: "Computer Science & Engineering (CSE)",
+            programCode: "CSE",
+            cgpa: 8.5,
+            verificationStatus: "VERIFIED"
+        });
+    }
     assert.ok(profile, "Student profile must exist");
-    const company = await Company.findOne({ isActive: true });
+    let company = await Company.findOne({ isActive: true });
+    if (!company) {
+        company = await Company.create({
+            name: "Test Corp",
+            email: "hr@testcorp.com",
+            website: "https://testcorp.com",
+            isActive: true
+        });
+    }
     assert.ok(company, "Active company must exist");
 
     // Create a temporary drive where the student is definitely eligible and has not applied

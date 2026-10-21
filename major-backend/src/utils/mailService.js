@@ -75,6 +75,7 @@ export const getSmtpConfigStatus = () => {
  * Checks whether SMTP credentials are fully present and not placeholder values.
  */
 export const isSmtpConfigured = () => {
+    if (isTestingMock && transporter) return true;
     const status = getSmtpConfigStatus();
     return status.configured;
 };
