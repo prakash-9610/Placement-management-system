@@ -9,6 +9,7 @@ import {
   ExternalLink,
   ChevronRight,
   Bell,
+  Award,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
@@ -39,6 +40,11 @@ export default function StudentSidebar({
       id: "applications",
       label: "My Applications",
       icon: FileCheck2,
+    },
+    {
+      id: "certificates",
+      label: "Certificates",
+      icon: Award,
     },
     {
       id: "notifications",

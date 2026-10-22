@@ -109,6 +109,7 @@ import notificationRouter from "./routes/notification.routes.js";
 import sessionRouter from "./routes/placementSession.routes.js";
 import departmentRouter from "./routes/department.routes.js";
 import excelRouter from "./routes/excel.routes.js";
+import certificateRouter, { adminCertificateRouter } from "./routes/certificate.routes.js";
 
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/studentprofile", studentRouter);
@@ -121,6 +122,10 @@ app.use("/api/v1/notifications", notificationRouter);
 app.use("/api/v1/sessions", sessionRouter);
 app.use("/api/v1/departments", departmentRouter);
 app.use("/api/v1/excel", excelRouter);
+app.use("/api/v1/certificates", certificateRouter);
+app.use("/api/certificates", certificateRouter);
+app.use("/api/v1/admin/certificates", adminCertificateRouter);
+app.use("/api/admin/certificates", adminCertificateRouter);
 
 app.use((req, res, next) => {
     next(new ApiError(404, `Route not found: ${req.method} ${req.path}`));

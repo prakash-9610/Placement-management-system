@@ -64,6 +64,11 @@ export default function AdminSidebar({
       icon: FileCheck2,
     },
     {
+      id: "certificates",
+      label: "Certificate Verification",
+      icon: ShieldCheck,
+    },
+    {
       id: "sessions",
       label: "Placement Sessions",
       icon: Calendar,

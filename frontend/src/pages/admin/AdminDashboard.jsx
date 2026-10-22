@@ -15,6 +15,7 @@ import ManageSessions from "../../components/admin/ManageSessions";
 import ExcelMigrationHub from "../../components/admin/ExcelMigrationHub";
 import ManageAnnouncements from "../../components/admin/ManageAnnouncements";
 import AutomatedPlacementDrives from "../../components/admin/AutomatedPlacementDrives";
+import CertificateVerificationDashboard from "../../components/admin/CertificateVerificationDashboard";
 
 import { useAuth } from "../../context/authContextDef";
 import {
@@ -39,6 +40,7 @@ const ADMIN_TABS = [
   "automated_drives",
   "companies",
   "applications",
+  "certificates",
   "sessions",
   "excel_hub",
   "announcements",
@@ -515,6 +517,10 @@ export default function AdminDashboard({ initialTab = "overview" }) {
               onUpdateStatus={handleUpdateApplicationStatus}
               onRefresh={() => loadDashboardData(true)}
             />
+          )}
+
+          {activeTab === "certificates" && (
+            <CertificateVerificationDashboard adminUser={user} />
           )}
 
           {activeTab === "sessions" && (

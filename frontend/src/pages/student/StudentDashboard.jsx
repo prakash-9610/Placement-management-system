@@ -39,6 +39,7 @@ import RecentApplications from "../../components/studentDashboard/RecentApplicat
 import ApplyModal from "../../components/studentDashboard/ApplyModal";
 import ProfileDrawer from "../../components/studentDashboard/ProfileDrawer";
 import ProfileModificationModal from "../../components/studentDashboard/ProfileModificationModal";
+import CertificateManagement from "../../components/studentDashboard/CertificateManagement";
 
 import {
   getStudentDashboardStats,
@@ -61,6 +62,8 @@ const STUDENT_ROUTE_TABS = {
   "/student-dashboard": "overview",
   "/placement-drives": "drives",
   "/my-applications": "applications",
+  "/certificates": "certificates",
+  "/student/certificates": "certificates",
   "/notifications": "notifications",
   "/student-profile": "profile",
 };
@@ -1530,6 +1533,14 @@ export default function StudentDashboard() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* TAB 4B: CERTIFICATES & CREDENTIAL VERIFICATION */}
+          {activeTab === "certificates" && (
+            <CertificateManagement
+              studentUser={user || authUser}
+              onProfileSync={() => loadDashboardData(true)}
+            />
           )}
 
           {/* TAB 5: NOTIFICATIONS & MESSAGES */}

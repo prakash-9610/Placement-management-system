@@ -25,7 +25,11 @@
     "cors": "^2.8.6",
     "exceljs": "^4.4.0",
     "jsonwebtoken": "^9.0.3",
+    "jsqr": "^1.4.0",
     "mongoose": "^9.9.2",
-    "nodemailer": "^10.1.0"
+    "nodemailer": "^10.1.0",
+    "pdf-parse": "^2.4.5",
+    "sharp": "^0.35.5",
+    "tesseract.js": "^7.0.0"
   }
 }

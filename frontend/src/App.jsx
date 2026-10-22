@@ -82,6 +82,22 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/certificates"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/certificates"
+          element={
+            <ProtectedRoute requiredRole="student">
+              <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Protected Admin / TPO Portal Routes */}
         <Route
@@ -89,6 +105,14 @@ function App() {
           element={
             <ProtectedRoute requiredRole="admin">
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/certificates"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminDashboard initialTab="certificates" />
             </ProtectedRoute>
           }
         />
