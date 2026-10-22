@@ -60,6 +60,12 @@ export default function AdminSidebar({
       icon: FileCheck2,
       badge: "Actions",
     },
+    {
+      id: "certificates",
+      label: "Certificate Verification",
+      icon: ShieldCheck,
+      badge: "OCR AI",
+    },
   ];
 
   const displayName = adminUser?.fullName || "Placement Admin";

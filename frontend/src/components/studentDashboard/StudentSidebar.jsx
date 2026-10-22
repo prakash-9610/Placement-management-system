@@ -8,6 +8,7 @@ import {
   GraduationCap,
   ExternalLink,
   ChevronRight,
+  Award,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -40,6 +41,12 @@ export default function StudentSidebar({
       label: "My Applications",
       icon: FileCheck2,
       badge: null,
+    },
+    {
+      id: "certificates",
+      label: "Certificates",
+      icon: Award,
+      badge: "OCR",
     },
     {
       id: "profile",

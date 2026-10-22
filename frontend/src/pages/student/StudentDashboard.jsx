@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   Sparkles,
@@ -25,6 +25,7 @@ import RecentDrives from "../../components/studentDashboard/RecentDrives";
 import RecentApplications from "../../components/studentDashboard/RecentApplications";
 import ApplyModal from "../../components/studentDashboard/ApplyModal";
 import ProfileDrawer from "../../components/studentDashboard/ProfileDrawer";
+import CertificateManagement from "../../components/studentDashboard/CertificateManagement";
 
 import {
   getStudentDashboardStats,
@@ -36,8 +37,9 @@ import {
 } from "../../services/studentService";
 import { useAuth } from "../../context/authContextDef";
 
-export default function StudentDashboard() {
+export default function StudentDashboard({ initialTab = "overview" }) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user: authUser, userRole, logout, studentProfile: authProfile } = useAuth();
 
   // If logged-in user is an admin, immediately redirect to Admin Console and avoid student calls
@@ -50,7 +52,8 @@ export default function StudentDashboard() {
 
   // Navigation and UI state
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("overview"); // overview | drives | applications | profile
+  const tabFromQuery = searchParams.get("tab");
+  const [activeTab, setActiveTab] = useState(tabFromQuery || initialTab); // overview | drives | applications | profile | certificates
   const [isProfileDrawerOpen, setIsProfileDrawerOpen] = useState(false);
 
   // Apply Modal State
@@ -791,6 +794,14 @@ export default function StudentDashboard() {
                 )}
               </div>
             </div>
+          )}
+
+          {/* TAB: CERTIFICATES & CREDENTIAL VERIFICATION */}
+          {activeTab === "certificates" && (
+            <CertificateManagement
+              studentUser={user || authUser}
+              onProfileSync={() => loadDashboardData(true)}
+            />
           )}
         </main>
       </div>

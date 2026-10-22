@@ -11,6 +11,7 @@ import ManageDrives from "../../components/admin/ManageDrives";
 import ManageCompanies from "../../components/admin/ManageCompanies";
 import ManageApplications from "../../components/admin/ManageApplications";
 import ManageStudents from "../../components/admin/ManageStudents";
+import CertificateVerificationDashboard from "../../components/admin/CertificateVerificationDashboard";
 
 import { useAuth } from "../../context/authContextDef";
 import {
@@ -674,6 +675,10 @@ export default function AdminDashboard({ initialTab = "overview" }) {
               onUpdateStatus={handleUpdateApplicationStatus}
               onRefresh={() => loadDashboardData(true)}
             />
+          )}
+
+          {activeTab === "certificates" && (
+            <CertificateVerificationDashboard adminUser={user} />
           )}
         </main>
       </div>
